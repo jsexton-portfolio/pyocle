@@ -1,6 +1,8 @@
 # Pyocle
 ![](https://github.com/jsexton-portfolio/pyocle/workflows/build/badge.svg)
 
+> Socle - A plain low block or plinth serving as a support for a column, urn, statue, etc. or as the foundation of a wall.
+
 Common library used alongside jsexton-portfolio chalice applications.
 
 ## Responses
@@ -39,6 +41,19 @@ bad_response = response.bad(error_details=[], schema={})
 
 internal_error_response = response.internal_error()
 ```
+
+### Serialization Helpers
+#### Camel Case Property Naming Convention
+It is a portfolio API standard that all field names should be camel case when serialized to the response body. Pyocle
+offers a mixin to assist in this conversion.
+```python
+from pyocle.serialization import CamelCaseAttributesMixin
+
+class MyResponse(CamelCaseAttributesMixin):
+    def __init__(self):
+        self.snake_case_attribute = 'snake_case_attribute'
+```
+When using jsonpickle or any built in pyocle response builders, the resulting json will contain camel cased attrbiute names.
 
 ## Error Handling
 Pyocle comes with an `error_handler` decorator that can be used to decorate all endpoints that require 
@@ -95,5 +110,15 @@ from pyocle import service
 
 kms = service.KeyManagementService()
 kms_response = kms.decrypt('some cipher text')
+```
+
+## Configuration
+### Connection Strings
+Connection strings should be encrypted with KMS and stored in the correct chalice stage environment variables as 'CONNECTION_STING'.
+When retrieving these values, make use of the `connection_string()` function. `connection_string()` will retrieve the environment
+connection string and decrypt using KMS while only returning the actual usable connection string.
+```python
+from pyocle import config
+connection_string = config.connection_string()
 ```
 
