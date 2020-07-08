@@ -11,7 +11,10 @@ class KeyManagementService:
     WARNING: Currently does not gracefully handle when a key identifier is unauthorized for use.
     """
 
-    def __init__(self, client=boto3.client('kms')):
+    def __init__(self, client=None):
+        if client is None:
+            client = boto3.client('kms')
+
         self.client = client
 
     def encrypt(self, plaintext: str, key_id: str) -> Dict[str, Any]:
