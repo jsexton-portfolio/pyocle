@@ -1,3 +1,6 @@
+# 0.2.2
+- Fixed bug in `encrypted_env_var()` function that was using the default value as the found environment variable.
+
 # 0.2.1
 - Fixed bug that caused library to fail when no attrs were passed to `encrypted_env_var()` function
 - `connection_string()` function now accepts a default

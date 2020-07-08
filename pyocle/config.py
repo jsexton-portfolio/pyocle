@@ -65,14 +65,17 @@ def encrypted_env_var(name: str,
     Otherwise an exception is raised detailing that the variable could not be retrieved.
 
     :param name: The name of the environment variable to retrieve
-    :param default: The value that will be used if no environment variable could be found.
+    :param default: The value that will be returned if no environment variable could be found.
     :param decrypter: Function used to decrypt the retrieved encrypted value
     :param attrs: Additional attributes that may be need to decrypt the value.
     :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
-    :return: The decrypted environment variable
+    :return: The decrypted environment variable or default
     """
     if attrs is None:
         attrs = {}
 
-    environment_variable = env_var(name, default, environment)
-    return decrypter(environment_variable, **attrs)
+    try:
+        environment_variable = env_var(name, environment=environment)
+        return decrypter(environment_variable, **attrs)
+    except MissingEnvironmentVariableError:
+        return default
