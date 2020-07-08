@@ -12,14 +12,14 @@ class MissingEnvironmentVariableException(Exception):
         return f'An environment variable with the name: {self.env_var_name} could not be found.'
 
 
-def connection_string() -> str:
+def connection_string(default=None) -> str:
     """
     Retrieves the environment's connection string cipher text and decrypts with Key Management Service to
     connection string plain text
 
     :return: Environment connection string plain text.
     """
-    return encrypted_env_var('CONNECTION_STRING')
+    return encrypted_env_var('CONNECTION_STRING', default=default)
 
 
 def env_var(name: str, default: str = None, environment=os.environ) -> str:
@@ -71,6 +71,8 @@ def encrypted_env_var(name: str,
     :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
     :return: The decrypted environment variable
     """
+    if attrs is None:
+        attrs = {}
 
     environment_variable = env_var(name, default, environment)
     return decrypter(environment_variable, **attrs)
