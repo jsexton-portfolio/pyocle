@@ -65,7 +65,7 @@ def encrypted_env_var(name: str,
 
     :param name: The name of the environment variable to retrieve
     :param default: The value that will be used if no environment variable could be found.
-    :param decrypter:
+    :param decrypter: Function used to decrypt the retrieved encrypted value
     :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
     :return: The decrypted environment variable
     """
