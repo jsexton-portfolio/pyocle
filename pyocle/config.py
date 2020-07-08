@@ -4,7 +4,7 @@ from typing import Callable, Dict, Any
 from pyocle.service import KeyManagementService
 
 
-class MissingEnvironmentVariableException(Exception):
+class MissingEnvironmentVariableError(Exception):
     def __init__(self, env_var_name: str):
         self.env_var_name = env_var_name
 
@@ -37,7 +37,7 @@ def env_var(name: str, default: str = None, environment=os.environ) -> str:
         return environment[name]
     except KeyError:
         if default is None:
-            raise MissingEnvironmentVariableException(name)
+            raise MissingEnvironmentVariableError(name)
         return default
 
 
