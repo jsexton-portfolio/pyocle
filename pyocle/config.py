@@ -1,5 +1,5 @@
 import os
-from typing import Callable
+from typing import Callable, Dict, Any
 
 from pyocle.service import KeyManagementService
 
@@ -56,7 +56,8 @@ def _kms_decrypter(value: str) -> str:
 
 def encrypted_env_var(name: str,
                       default: str = None,
-                      decrypter: Callable[[str], str] = _kms_decrypter,
+                      decrypter: Callable[[str, Dict[str, Any]], str] = _kms_decrypter,
+                      attrs: Dict[str, Any] = None,
                       environment=os.environ) -> str:
     """
     Retrieves a specified encrypted environment variable and decrypts the value.
@@ -66,9 +67,10 @@ def encrypted_env_var(name: str,
     :param name: The name of the environment variable to retrieve
     :param default: The value that will be used if no environment variable could be found.
     :param decrypter: Function used to decrypt the retrieved encrypted value
+    :param attrs: Additional attributes that may be need to decrypt the value.
     :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
     :return: The decrypted environment variable
     """
 
     environment_variable = env_var(name, default, environment)
-    return decrypter(environment_variable)
+    return decrypter(environment_variable, **attrs)
