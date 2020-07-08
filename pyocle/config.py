@@ -1,23 +1,74 @@
 import os
-from typing import Optional
+from typing import Callable
 
 from pyocle.service import KeyManagementService
 
 
-def connection_string() -> Optional[str]:
+class MissingEnvironmentVariableException(Exception):
+    def __init__(self, env_var_name: str):
+        self.env_var_name = env_var_name
+
+    def __str__(self):
+        return f'An environment variable with the name: {self.env_var_name} could not be found.'
+
+
+def connection_string() -> str:
     """
     Retrieves the environment's connection string cipher text and decrypts with Key Management Service to
     connection string plain text
 
     :return: Environment connection string plain text.
     """
-    connection_string_cipher_text = os.getenv('CONNECTION_STRING')
+    return encrypted_env_var('CONNECTION_STRING')
 
-    if connection_string_cipher_text is None:
-        return None
 
-    key_management_service = KeyManagementService()
-    response = key_management_service.decrypt(connection_string_cipher_text)
+def env_var(name: str, default: str = None, environment=os.environ) -> str:
+    """
+    Retrieves a specified environment variable.
+    A default value can be provided in the case the value could not be found.
+    Otherwise an exception is raised detailing that the variable could not be retrieved.
+
+    :param name: The name of the environment variable to retrieve
+    :param default: The value that will be used if no environment variable could be found.
+    :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
+    :return:
+    """
+    try:
+        return environment[name]
+    except KeyError:
+        if default is None:
+            raise MissingEnvironmentVariableException(name)
+        return default
+
+
+def _kms_decrypter(value: str) -> str:
+    """
+    Helper function used decrypt an encrypted value with key management service.
+
+    :param value: The value to decrypt
+    :return: The decrypted value
+    """
+    response = KeyManagementService().decrypt(value)
 
     # plaintext comes back in the form of bytes. Need to decode to utf-8
     return response['Plaintext'].decode('utf-8')
+
+
+def encrypted_env_var(name: str,
+                      default: str = None,
+                      decrypter: Callable[[str], str] = _kms_decrypter,
+                      environment=os.environ) -> str:
+    """
+    Retrieves a specified encrypted environment variable and decrypts the value.
+    A default value can be provided in the case the value could not be found.
+    Otherwise an exception is raised detailing that the variable could not be retrieved.
+
+    :param name: The name of the environment variable to retrieve
+    :param default: The value that will be used if no environment variable could be found.
+    :param decrypter:
+    :param environment: The environment to attempt to retrieve the variable from. By default the os environment is used.
+    :return: The decrypted environment variable
+    """
+
+    environment_variable = env_var(name, default, environment)
+    return decrypter(environment_variable)
