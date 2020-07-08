@@ -17,6 +17,12 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jsexton-portfolio/pyocle.git",
     python_requires='>=3',
+    install_requires=[
+        'pydantic',
+        'boto3',
+        'jsonpickle',
+        'chalice'
+    ],
     keywords=[
         'library',
         'chalice'
