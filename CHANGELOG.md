@@ -1,5 +1,11 @@
 # 0.3.0
-- Fixed bug causing `None` to be returned when no default was provided.
+- Fixed bug causing `None` to be returned when no default was provided for `encrypted_env_var`.
+- Added pagination details to response metadata
+- Removed error module
+    - `error_handler` noe resides in response module
+- Restructured `ErrorDetails`
+    - Renamed `field_name` to `location`
+    - Removed `FieldErrorDetails`
 
 # 0.2.2
 - Fixed bug in `encrypted_env_var()` function that was using the default value as the found environment variable.

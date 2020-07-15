@@ -1,10 +1,34 @@
-from typing import Sequence, Union, Dict, Any, Type, TypeVar
+from typing import Sequence, Union, Dict, Any, Type, TypeVar, Optional
 
 import jsonpickle
-from pydantic import ValidationError, BaseModel
+from pydantic import ValidationError, BaseModel, conint
 
-from pyocle.error import FormValidationError
-from pyocle.response import ErrorDetail, FieldErrorDetail
+
+class FormValidationError(Exception):
+    """
+    Error raised when an incoming request form is invalid
+    """
+
+    def __init__(self,
+                 errors: Optional[Sequence[Dict[str, Any]]] = None,
+                 message: str = None,
+                 schemas: Dict[str, Any] = None):
+        self.errors = errors or []
+        self.message = message or 'Form was not validated successfully'
+        self.schemas = schemas
+
+
+class PaginationQueryParameters(BaseModel):
+    """
+    Model representing pagination query parameters. Model contains built in validation and can be resolved with
+    the resolve_query_params resolver function.
+
+    Ex.
+    resolved_params = resolve_query_params(app.current_request.query_params, PaginationQueryParameters)
+    """
+    page: conint(ge=0) = 0
+    limit: conint(ge=1, le=1000) = 100
+
 
 # Form should inherit from pydantic's BaseModel
 T = TypeVar('T', bound=BaseModel)
@@ -32,22 +56,46 @@ def resolve_form(data: Union[str, bytes, Dict[str, Any]], form_type: Type[T]) ->
 
         return form_type(**data)
     except ValidationError as ex:
-        error_details = _build_error_details(ex.errors())
-        raise FormValidationError(error_details=error_details, schema=form_type.schema())
+        schema_name = _resolve_schema_name(form_type)
+        raise FormValidationError(errors=ex.errors(), schemas={schema_name: form_type.schema()})
     except (TypeError, ValueError) as ex:
-        error_details = [ErrorDetail(description='Request body either either did not exist or was not valid JSON.')]
+        # Will be raised by the jsonpickle.loads call when incoming str or bytes are not valid JSON.
+        errors = [
+            {
+                'loc': ['requestBody'],
+                'msg': 'Request body either either did not exist or was not valid JSON.'
+            }
+        ]
+        schema_name = _resolve_schema_name(form_type)
         raise FormValidationError(
             message='Form could not be validated due to given json not existing or being valid',
-            error_details=error_details,
-            schema=form_type.schema()
+            errors=errors,
+            schemas={schema_name: form_type.schema()}
         ) from ex
 
 
-def _build_error_details(errors) -> Sequence[FieldErrorDetail]:
+def resolve_query_params(params: Optional[Dict[str, str]], model: Type[BaseModel]):
     """
-    Creates list of field error details from given pydantic errors
+    Very similar to resolve_form function except query parameters are optional.
+    Only recognizable data is validated and returned in the response.
 
-    :param errors: List of pydantic errors
-    :return: List of field error details built from given pydantic errors
+    :param params: The dictionary of query parameters that should be resolved to
+    :param model: The model the query parameters should be mapped to
+    :return: The resolved query parameter model
     """
-    return [FieldErrorDetail(field_name='.'.join(error['loc']), description=error['msg']) for error in errors]
+    return {} if params is None else resolve_form(params, model).dict(exclude_unset=True)
+
+
+def _resolve_schema_name(model: Type[BaseModel]) -> str:
+    """
+    Hacky function to determine a schema name based on the model type. This should be updated to something more
+    robust in the future.
+
+    :param model: The model that will be used to determine the schema name
+    :return: The schema name
+    """
+    model_name = model.__name__
+    if model_name.endswith('QueryParameters'):
+        return 'queryParameters'
+
+    return 'requestBody'

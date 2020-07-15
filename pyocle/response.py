@@ -1,46 +1,46 @@
-from typing import Any, Union, Sequence, Optional, Dict
+import logging
+from typing import Any, Union, Sequence, Optional, Dict, List
 
 import jsonpickle
 from chalice import Response
 
+from pyocle.form import PaginationQueryParameters, FormValidationError
 from pyocle.serialization import CamelCaseAttributesMixin
+from pyocle.service import ResourceNotFoundError
 
 
 class ErrorDetail(CamelCaseAttributesMixin):
     """
-    Represents any error information regarding a request. Will mostly be used in 400 Bad Request responses.
-    """
-
-    def __init__(self, description: str):
-        self.description = description
-
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, ErrorDetail) and other.description == self.description
-
-    def __ne__(self, other: object) -> bool:
-        return not self == other
-
-    def __repr__(self):
-        return f'ErrorDetail(description={self.description})'
-
-
-class FieldErrorDetail(ErrorDetail):
-    """
     Represents a field error and details around why this field caused an error and other meta data.
     """
 
-    def __init__(self, description: str, field_name: str):
-        super().__init__(description)
-        self.field_name = field_name
+    def __init__(self, description: str, location: str):
+        self.description = description
+        self.location = location
 
     def __eq__(self, other: object) -> bool:
-        return super().__eq__(other) and isinstance(other, FieldErrorDetail) and other.field_name == self.field_name
+        return isinstance(other, ErrorDetail) and \
+               other.location == self.location and \
+               other.description == self.description
 
     def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __repr__(self):
-        return f'FieldErrorDetail(description={self.description}, field_name={self.field_name})'
+        return f'FieldErrorDetail(description={self.description}, location={self.location})'
+
+
+class PaginationDetails:
+    """
+    Model holding a particular requests pagination details
+    """
+
+    def __init__(self, page: int, limit: int):
+        self.page = page
+        self.limit = limit
+
+    def __repr__(self):
+        return f'PaginationDetails(page={self.page}, limit={self.limit})'
 
 
 class MetaData(CamelCaseAttributesMixin):
@@ -51,22 +51,28 @@ class MetaData(CamelCaseAttributesMixin):
     def __init__(self,
                  message: str,
                  error_details: Optional[Sequence[ErrorDetail]] = None,
+                 pagination_details: Optional[PaginationDetails] = None,
                  schemas: Optional[Dict[str, Any]] = None):
         self.message = message
         self.error_details = error_details or []
+        self.pagination_details = pagination_details or {}
         self.schemas = schemas or {}
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, MetaData) and \
                other.message == self.message and \
                other.schemas == self.schemas and \
-               other.error_details == self.error_details
+               other.error_details == self.error_details and \
+               other.pagination_details == self.pagination_details
 
     def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __repr__(self):
-        return f'MetaData(message=\'{self.message}\', error_details={self.error_details}, schemas={self.schemas})'
+        return (f'MetaData(message=\'{self.message}\','
+                f' error_details={self.error_details},'
+                f' pagination_details={self.pagination_details},'
+                f' schemas={self.schemas})')
 
 
 class ResponseBody:
@@ -85,24 +91,26 @@ class ResponseBody:
         return jsonpickle.dumps(self, unpicklable=False)
 
 
-def ok_metadata() -> MetaData:
+def ok_metadata(pagination: Optional[PaginationQueryParameters] = None) -> MetaData:
     """
     :return: Successful request (Ok) meta data
     """
-    return metadata(message='Request completed successfully')
+    pagination_details = None if pagination is None else PaginationDetails(**pagination.dict())
+    return metadata(message='Request completed successfully',
+                    pagination_details=pagination_details)
 
 
 def bad_metadata(error_details: Sequence[ErrorDetail] = None,
-                 schema: Optional[Dict[str, Any]] = None) -> MetaData:
+                 schemas: Optional[Dict[str, Any]] = None) -> MetaData:
     """
     :param error_details: Error details that will be used to construct meta data
-    :param schema: Schema that will be used to construct meta data
+    :param schemas: Schemas that will be used to construct meta data
     :return: Bad request meta data
     """
     return metadata(
         message='Given inputs were incorrect. Consult the below details to address the issue.',
         error_details=error_details or [],
-        schemas={'requestBody': schema} if schema is not None else {}
+        schemas=schemas if schemas is not None else {}
     )
 
 
@@ -123,28 +131,32 @@ def internal_error_metadata() -> MetaData:
 
 def metadata(message: str,
              error_details: Optional[Sequence[ErrorDetail]] = None,
+             pagination_details: Optional[PaginationDetails] = None,
              schemas: Optional[Dict[str, Any]] = None) -> MetaData:
     """
     Factory method for metadata objects
 
     :param error_details: Error details that will be used to construct meta data
-    :param schemas: Schema that will be used to construct meta data
+    :param schemas: Schemas that will be used to construct meta data
+    :param pagination_details: Information describing what pagination rules were applied when collecting data
     :param message: The message that will be used in the meta object
     :return: The created
     """
     return MetaData(
         message=message,
         error_details=error_details,
+        pagination_details=pagination_details,
         schemas=schemas
     )
 
 
-def ok(data: Any) -> Response:
+def ok(data: Any, pagination: Optional[PaginationQueryParameters] = None) -> Response:
     """
     :param data: Data that will be used to populate the response body
+    :param pagination: Pagination meta data used to collect the ok response data
     :return: Ok response
     """
-    return response(200, ok_metadata(), data)
+    return response(200, ok_metadata(pagination), data)
 
 
 def created(data: Any) -> Response:
@@ -156,14 +168,14 @@ def created(data: Any) -> Response:
 
 
 def bad(error_details: Sequence[ErrorDetail] = None,
-        schema: Optional[Dict[str, Any]] = None) -> Response:
+        schemas: Optional[Dict[str, Any]] = None) -> Response:
     """
     :param error_details: Details detailing why the request was bad. These details will be used
     in the response body.
-    :param schema: Request body  that will be displayed in meta information of response
+    :param schemas: Schemas that will be displayed in meta information of response
     :return: Bad request response
     """
-    response_metadata = bad_metadata(error_details=error_details, schema=schema)
+    response_metadata = bad_metadata(error_details=error_details, schemas=schemas)
     return response(400, response_metadata)
 
 
@@ -203,3 +215,40 @@ def response(status_code: int,
     json_body = body.to_json()
 
     return Response(status_code=status_code, body=json_body, headers=headers)
+
+
+def error_handler(decorated):
+    """
+    Wraps functions with error handling capabilities. Be sure to include this decoration after all other decorators.
+
+    @app.route('/)
+    @error_handler
+    def route():
+        # route logic that potentially raises errors
+    :param decorated: The function implementation that will be extended with error handling
+    :return: The decorated function wrapped with error handling capabilities
+    """
+
+    def wrapped_handler(*args, **kwargs):
+        try:
+            return decorated(*args, **kwargs)
+        except ResourceNotFoundError as ex:
+            return not_found(ex.identifier)
+        except FormValidationError as ex:
+            error_details = _build_error_details(ex.errors)
+            return bad(error_details=error_details, schemas=ex.schemas)
+        except Exception as ex:
+            logging.error('Caught exception for %s', ex)
+            return internal_error()
+
+    return wrapped_handler
+
+
+def _build_error_details(errors: List[Dict[str, Any]]) -> Sequence[ErrorDetail]:
+    """
+    Creates list of error details from given pydantic errors
+
+    :param errors: List of pydantic errors
+    :return: List of field error details built from given pydantic errors
+    """
+    return [ErrorDetail(location='.'.join(error['loc']), description=error['msg']) for error in errors]

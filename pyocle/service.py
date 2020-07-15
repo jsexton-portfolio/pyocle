@@ -4,6 +4,16 @@ from typing import Dict, Any
 import boto3
 
 
+class ResourceNotFoundError(Exception):
+    """
+    Error raised when a resource could not be found with a particular identifier.
+    """
+
+    def __init__(self, identifier: str, message: str = None):
+        self.identifier = identifier
+        self.message = message or f'Resource with id {identifier} could not be found'
+
+
 class KeyManagementService:
     """
     Service used to interface with aws kms (Key Management Service)

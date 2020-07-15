@@ -5,6 +5,10 @@ from pyocle.service import KeyManagementService
 
 
 class MissingEnvironmentVariableError(Exception):
+    """
+    Error raised when an environment variable could not be found in the configured environment
+    """
+
     def __init__(self, env_var_name: str):
         self.env_var_name = env_var_name
 
