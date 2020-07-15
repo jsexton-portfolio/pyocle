@@ -66,7 +66,7 @@ def test_resolve_form_raises_form_validation_error_when_given_invalid_or_no_json
 
 
 def test_resolve_form_raises_value_error_when_given_unsupported_form_type():
-    class InvalidForm:
+    class InvalidForm(BaseModel):
         pass
 
     with pytest.raises(ValueError) as exception_info:
