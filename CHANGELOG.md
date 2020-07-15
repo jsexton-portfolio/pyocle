@@ -1,3 +1,6 @@
+# 0.3.0
+- Fixed bug causing `None` to be returned when no default was provided.
+
 # 0.2.2
 - Fixed bug in `encrypted_env_var()` function that was using the default value as the found environment variable.
 

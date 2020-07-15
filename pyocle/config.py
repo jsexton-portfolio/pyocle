@@ -77,5 +77,8 @@ def encrypted_env_var(name: str,
     try:
         environment_variable = env_var(name, environment=environment)
         return decrypter(environment_variable, **attrs)
-    except MissingEnvironmentVariableError:
+    except MissingEnvironmentVariableError as ex:
+        if default is None:
+            raise ex
+
         return default

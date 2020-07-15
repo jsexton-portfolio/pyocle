@@ -46,3 +46,17 @@ def test_encrypted_env_var_returns_default_when_variable_is_missing(env):
                                                            environment=env)
     assert environment_variable is not None
     assert environment_variable == default
+
+
+def test_encrypted_env_var_raises_error_when_variable_is_missing_and_no_default_provided(env):
+    def decrypter(value):
+        """Dummy decrypter so that we do not trigger the kms decrypter"""
+        return value
+
+    missing_variable = 'does not exist'
+    with pytest.raises(MissingEnvironmentVariableError) as exception_info:
+        pyocle.config.encrypted_env_var(missing_variable, decrypter=decrypter, environment=env)
+
+    exception = exception_info.value
+    assert exception.env_var_name == missing_variable
+    assert str(exception) == f'An environment variable with the name: {missing_variable} could not be found.'
