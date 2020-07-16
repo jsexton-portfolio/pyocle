@@ -15,6 +15,10 @@ def schemas():
     return {'requestBody': DummyForm.schema()}
 
 
+def test_pagination_details_ignores_unexpected_keywords():
+    PaginationDetails(page=5, limit=100, unexpected='a unexpected string')
+
+
 class TestMetaDataBuilder:
     def test_ok(self):
         actual_meta = ok_metadata()

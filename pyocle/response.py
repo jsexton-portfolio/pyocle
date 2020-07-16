@@ -35,7 +35,7 @@ class PaginationDetails:
     Model holding a particular requests pagination details
     """
 
-    def __init__(self, page: int, limit: int):
+    def __init__(self, page: int, limit: int, **kwargs):
         self.page = page
         self.limit = limit
 

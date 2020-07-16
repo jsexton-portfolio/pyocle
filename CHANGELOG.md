@@ -1,3 +1,6 @@
+# 0.3.2
+- Fixed bug causing `PaginationDetails` to not ignore unexpected attributes
+
 # 0.3.1
 - Improved error logging
 - Fixed bug that was causing `resolve_query_params` to return a dict instead of the resolved model object
