@@ -1,3 +1,7 @@
+# 0.3.1
+- Improved error logging
+- Fixed bug that was causing `resolve_query_params` to return a dict instead of the resolved model object
+
 # 0.3.0
 - Fixed bug causing `None` to be returned when no default was provided for `encrypted_env_var`.
 - Added pagination details to response metadata
