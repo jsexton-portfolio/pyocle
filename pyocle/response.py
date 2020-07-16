@@ -238,7 +238,9 @@ def error_handler(decorated):
             error_details = _build_error_details(ex.errors)
             return bad(error_details=error_details, schemas=ex.schemas)
         except Exception as ex:
-            logging.error('Caught exception for %s', ex)
+            logger = logging.getLogger(__name__)
+            logger.error('Something crashed, view the below traceback for more information')
+            logger.exception(ex)
             return internal_error()
 
     return wrapped_handler
