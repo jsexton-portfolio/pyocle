@@ -97,25 +97,25 @@ class TestPaginationQueryParameters:
 
 
 @pytest.mark.parametrize('query_params,expected,model', [
-    (None, {}, PaginationQueryParameters),
+    (None,
+     PaginationQueryParameters(),
+     PaginationQueryParameters),
     ({
          'page': 1,
          'limit': 100
      },
-     {
-         'page': 1,
-         'limit': 100,
-     }, PaginationQueryParameters),
+     PaginationQueryParameters(page=1, limit=100),
+     PaginationQueryParameters),
     ({
          'page': 5,
          'limit': 500,
          'extra': 'should be ignored'
      },
-     {
-         'page': 5,
-         'limit': 500,
-     }, PaginationQueryParameters)
+     PaginationQueryParameters(page=5, limit=500),
+     PaginationQueryParameters)
 ])
-def test_resolve_query_params(query_params: Optional[Dict[str, Any]], expected: Dict[str, Any], model: Type[BaseModel]):
-    params = resolve_query_params(query_params, model)
-    assert params == expected
+def test_resolve_query_params(query_params: Optional[Dict[str, Any]],
+                              expected: PaginationQueryParameters,
+                              model: Type[BaseModel]):
+    resolved_query_params = resolve_query_params(query_params, model)
+    assert resolved_query_params == expected
