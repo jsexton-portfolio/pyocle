@@ -74,7 +74,7 @@ def resolve_form(data: Union[str, bytes, Dict[str, Any]], form_type: Type[T]) ->
         ) from ex
 
 
-def resolve_query_params(params: Optional[Dict[str, str]], model: Type[BaseModel]):
+def resolve_query_params(params: Optional[Dict[str, str]], model: Type[BaseModel]) -> T:
     """
     Very similar to resolve_form function except query parameters are optional.
     Only recognizable data is validated and returned in the response.
@@ -83,7 +83,8 @@ def resolve_query_params(params: Optional[Dict[str, str]], model: Type[BaseModel
     :param model: The model the query parameters should be mapped to
     :return: The resolved query parameter model
     """
-    return {} if params is None else resolve_form(params, model).dict(exclude_unset=True)
+    query_param_dict = {} if params is None else resolve_form(params, model).dict(exclude_unset=True)
+    return model(**query_param_dict)
 
 
 def _resolve_schema_name(model: Type[BaseModel]) -> str:
