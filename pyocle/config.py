@@ -1,7 +1,7 @@
 import os
 from typing import Callable, Dict, Any
 
-from pyocle.service import KeyManagementService
+from pyocle.service.kms import KeyManagementService, DecryptForm
 
 
 class MissingEnvironmentVariableError(Exception):
@@ -52,7 +52,8 @@ def _kms_decrypter(value: str) -> str:
     :param value: The value to decrypt
     :return: The decrypted value
     """
-    response = KeyManagementService().decrypt(value)
+    form = DecryptForm(cipher_text_blob=value)
+    response = KeyManagementService().decrypt(form)
 
     # plaintext comes back in the form of bytes. Need to decode to utf-8
     return response['Plaintext'].decode('utf-8')

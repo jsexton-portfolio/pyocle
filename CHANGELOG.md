@@ -1,3 +1,10 @@
+# 0.4.0
+- Added accepted response method
+- Added service package
+    - Added Simple Notification Service
+    - Added Simple Email Service
+    - Key Management Service overhaul
+
 # 0.3.2
 - Fixed bug causing `PaginationDetails` to not ignore unexpected attributes
 

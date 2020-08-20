@@ -83,7 +83,7 @@ def resolve_query_params(params: Optional[Dict[str, str]], model: Type[BaseModel
     :param model: The model the query parameters should be mapped to
     :return: The resolved query parameter model
     """
-    query_param_dict = {} if params is None else resolve_form(params, model).dict(exclude_unset=True)
+    query_param_dict = {} if params is None else resolve_form(params, model).dict(exclude_none=True)
     return model(**query_param_dict)
 
 
