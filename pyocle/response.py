@@ -6,7 +6,7 @@ from chalice import Response
 
 from pyocle.form import PaginationQueryParameters, FormValidationError
 from pyocle.serialization import CamelCaseAttributesMixin
-from pyocle.service import ResourceNotFoundError
+from pyocle.service.core import ResourceNotFoundError
 
 
 class ErrorDetail(CamelCaseAttributesMixin):
@@ -165,6 +165,14 @@ def created(data: Any) -> Response:
     :return: Created response
     """
     return response(201, meta=ok_metadata(), data=data)
+
+
+def accepted(data: Any) -> Response:
+    """
+    :param data: Data that will be used to populate the response body
+    :return: Created response
+    """
+    return response(202, meta=ok_metadata(), data=data)
 
 
 def bad(error_details: Sequence[ErrorDetail] = None,
