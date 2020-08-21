@@ -43,14 +43,17 @@ class PublishMessageForm(BaseForm):
                  phone_number: str = None,
                  subject: str = None,
                  message_structure: str = None,
-                 message_attributes: Dict[str, MessageAttribute]):
+                 message_attributes: Dict[str, MessageAttribute] = None):
         self.message = message
         self.topic_arn = topic_arn
         self.target_arn = target_arn
         self.phone_number = phone_number
         self.subject = subject
         self.message_structure = message_structure
-        self.message_attributes = message_attributes
+        self.message_attributes = message_attributes or {}
+
+        if phone_number is None and topic_arn is None and target_arn is None:
+            raise ValueError('A phone number, topic or target must be specified')
 
     def _dict(self):
         message = self.message

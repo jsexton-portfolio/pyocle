@@ -72,6 +72,16 @@ def test_publish_message_form_is_correctly_converted_to_dict_with_dict_message(p
     assert actual_dict == expected_dict
 
 
+def test_publish_message_form_raises_value_error_when_phone_target_or_topic_is_not_provided():
+    with pytest.raises(ValueError) as ex_info:
+        PublishMessageForm(
+            message='message'
+        )
+
+    error = ex_info.value
+    assert str(error) == 'A phone number, topic or target must be specified'
+
+
 def test_simple_notification_service_invokes_publish_operation_correctly(
         mocker,
         publish_message: FormTestFixture):
