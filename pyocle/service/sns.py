@@ -1,7 +1,7 @@
+import json
 from typing import Union, Dict, Any
 
 import boto3
-import jsonpickle
 
 from pyocle.service.core import BaseForm
 
@@ -58,7 +58,7 @@ class PublishMessageForm(BaseForm):
     def _dict(self):
         message = self.message
         if isinstance(message, dict):
-            message = jsonpickle.dumps({'default': message}, unpicklable=True)
+            message = json.dumps(message)
 
         return {
             'Message': message,

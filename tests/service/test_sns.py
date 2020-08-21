@@ -67,7 +67,7 @@ def test_publish_message_form_is_correctly_converted_to_dict_with_dict_message(p
     actual_dict = publish_message.value.dict()
     expected_dict = publish_message.dict
     expected_dict.update({
-        'Message': '{"default": {"key": "value"}}'
+        'Message': '{"key": "value"}'
     })
     assert actual_dict == expected_dict
 

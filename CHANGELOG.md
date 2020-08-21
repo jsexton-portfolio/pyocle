@@ -1,3 +1,6 @@
+# 0.4.1
+- Fixed issue not allowing json messages to be published correctly using sns.
+
 # 0.4.0
 - Added accepted response method
 - Added service package
