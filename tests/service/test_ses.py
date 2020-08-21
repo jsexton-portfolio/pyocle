@@ -150,7 +150,7 @@ def test_email_form_raises_value_error_when_text_or_html_is_not_provided():
         )
 
     error = ex_info.value
-    assert str(error) == 'html or text attribute must be populated'
+    assert str(error) == 'Html or text content must be specified'
 
 
 def test_base_email_form_is_correctly_converted_to_dict(base_email_form: FormTestFixture):

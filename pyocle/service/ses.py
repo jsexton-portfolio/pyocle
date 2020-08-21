@@ -95,7 +95,7 @@ class EmailForm(BaseEmailForm):
         self.html_charset = html_charset
 
         if html is None and text is None:
-            raise ValueError('html or text attribute must be populated')
+            raise ValueError('Html or text content must be specified')
 
     def _dict(self):
         return {
