@@ -37,7 +37,7 @@ created_response = pyocle.response.created({'some': 'data'})
 
 # In most cases, the error handler will handle these responses for you if you defined
 # the pydantic models correctly and you are using form.resolve_form for all incoming data.
-bad_response = pyocle.response.bad(error_details=[], schema={})
+bad_response = pyocle.response.bad(error_details=[], schemas={})
 
 internal_error_response = pyocle.response.internal_error()
 ```
@@ -65,8 +65,8 @@ import pyocle
 
 app = Chalice(app_name='my-portfolio-service')
 
-app.route('/')
-@pyocle.error.error_handler
+@app.route('/')
+@pyocle.response.error_handler
 def some_portfolio_endpoint():
     pass
 ```
@@ -89,8 +89,8 @@ app = Chalice(app_name='my-portfolio-service')
 class SomeForm(BaseModel):
     test_data: str
 
-app.route('/')
-@pyocle.error.error_handler
+@app.route('/')
+@pyocle.response.error_handler
 def some_portfolio_endpoint():
     incoming_data = app.current_request.raw_body
     form = pyocle.form.resolve_form(incoming_data, SomeForm)
