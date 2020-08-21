@@ -104,11 +104,58 @@ Pyocle comes with a few common services used through out portfolio services out 
 ### Key Management Service
 The `KeyManagementService` is used to interface with AWS KMS for encrypting and decrypting information. Most common
 use case is decrypting connection strings for databases.
-```python
-import pyocle
 
-kms = pyocle.service.KeyManagementService()
-kms_response = kms.decrypt('some cipher text')
+#### Encrypt
+```python
+from pyocle.service.kms import KeyManagementService, EncryptForm
+
+kms = KeyManagementService()
+form = EncryptForm(
+    key_id='key id',
+    plain_text='some cipher text'
+)
+kms_response = kms.encrypt(form)
+```
+
+#### Decrypt
+```python
+from pyocle.service.kms import KeyManagementService, DecryptForm
+
+kms = KeyManagementService()
+form = DecryptForm(
+    cipher_text_blob='some cipher text'
+)
+kms_response = kms.decrypt(form)
+```
+
+### Simple Email Service
+The `SimpleEmailService` is used to interface with AWS SES allowing consumers to send emails.
+```python
+from pyocle.service.ses import SimpleEmailService, EmailForm
+
+ses = SimpleEmailService()
+form = EmailForm(
+    source='the source of the email',
+    to_addresses=['some', 'email', 'addresses'],
+    subject='some subject line',
+    text='some email message'
+)
+ses.send_email(form)
+```
+
+### Simple Notification Service
+The `SimpleNotificationService` is used to interface with AWS SNS allowing messages to be published to
+various topics.
+
+```python
+from pyocle.service.sns import SimpleNotificationService, PublishMessageForm
+
+sns = SimpleNotificationService()
+form = PublishMessageForm(
+    message='some message, can also be a dictionary and will be converted to json',
+    topic_arn='topic arn'
+)
+sns.publish(form)
 ```
 
 ## Configuration
