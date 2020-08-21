@@ -24,7 +24,8 @@ to help remain consistent with these defined standards response models.
 {
   "message": "Message depending on the type of response",
   "errorDetails": [],
-  "schemas": {}
+  "paginationDetails": { },
+  "schemas": { }
 }
 ```
 
