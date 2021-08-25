@@ -34,6 +34,7 @@ jobs:
         # Region must be defined for the boto3 kms client
         AWS_DEFAULT_REGION: 'us-east-2'
       run: |
+        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
         pytest
     - name: Build and publish
       env:
